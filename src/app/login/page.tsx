@@ -39,7 +39,7 @@ export default function LoginPage() {
           router.push("/scan");
         }
       } else {
-        alert("Sai tên tài khoản hoặc mật khẩu!");
+        alert("Sai tên tài khoản hoặc mật khẩu");
       }
     } catch (error) {
       console.error("Lỗi đăng nhập:", error);
