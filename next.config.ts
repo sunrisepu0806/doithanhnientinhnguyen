@@ -1,16 +1,12 @@
 import type { NextConfig } from "next";
 
-// Sửa ": NextConfig" thành ": any" để bỏ qua lỗi kiểm tra type
-const nextConfig: any = {
+const nextConfig: NextConfig = {
   /* config options here */
   typescript: {
-    // !! CẢNH BÁO: Bỏ qua lỗi TypeScript khi Build
+    // Giữ cái này để bỏ qua lỗi Code (TS)
     ignoreBuildErrors: true,
   },
-  eslint: {
-    // !! CẢNH BÁO: Bỏ qua lỗi ESLint khi Build
-    ignoreDuringBuilds: true,
-  },
+  // ĐÃ XÓA PHẦN ESLINT GÂY LỖI
 };
 
 export default nextConfig;
