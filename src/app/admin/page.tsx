@@ -151,7 +151,7 @@ export default function AdminDashboardPage() {
                     <Activity size={32} />
                 </div>
                 <div>
-                    <h3 className="text-2xl font-black text-slate-800 tracking-tight">Chào Phú! 👋</h3>
+                    <h3 className="text-2xl font-black text-slate-800 tracking-tight">Chào quản trị viên! 👋</h3>
                     <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Hệ thống đang quản lý <span className="text-[#0055A5] font-black">{activities.length}</span> hoạt động</p>
                 </div>
             </div>
