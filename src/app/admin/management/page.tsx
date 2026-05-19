@@ -5,7 +5,7 @@ import {
   collection, addDoc, updateDoc, deleteDoc, doc, 
   onSnapshot, query, orderBy, serverTimestamp 
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db } from "../../../lib/firebase";
 import * as XLSX from "xlsx"; 
 import ExcelJS from "exceljs";
 import QRCode from "qrcode";   
