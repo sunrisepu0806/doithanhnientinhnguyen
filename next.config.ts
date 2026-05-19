@@ -3,9 +3,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // KHÔNG ĐƯỢC ĐỂ DÒNG 'eslint' Ở ĐÂY NỮA
 };
 
 module.exports = nextConfig;
