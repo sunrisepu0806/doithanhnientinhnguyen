@@ -29,6 +29,17 @@ interface Member {
   createdAt?: any;
 }
 
+const EXPORT_LABELS: Record<string, string> = {
+  fullName: "Họ và Tên",
+  studentId: "Mã Sinh Viên",
+  dob: "Ngày Sinh",
+  group: "Tổ",
+  major: "Ngành Học",
+  totalSessions: "Số Buổi",
+  totalPoints: "Tổng Điểm",
+  qrCode: "Mã QR"
+};
+
 export default function MemberManagementPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
@@ -139,7 +150,7 @@ export default function MemberManagementPage() {
       });
 
       const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; 
@@ -160,10 +171,10 @@ export default function MemberManagementPage() {
       reader.onload = async (event) => {
         try {
           const data = new Uint8Array(event.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: "array" });
+          const workbook = XLSX.read(data, { type: "array", codepage: 65001 });
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
-          const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet);
+          const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
           if (!jsonData || jsonData.length === 0) {
             alert("File Excel trống hoặc định dạng không thể đọc được!");
@@ -176,28 +187,33 @@ export default function MemberManagementPage() {
           let errorCount = 0;
 
           for (const row of jsonData) {
-            const fullName = row["HỌ VÀ TÊN"] || row["Họ tên"] || row["fullName"] || "";
-            const studentId = row["MÃ SV"] || row["Mã sinh viên"] || row["studentId"] || "";
-            const major = row["NGÀNH HỌC"] || row["Ngành học"] || row["major"] || "";
-            const group = row["TỔ"] || row["Tổ"] || row["group"] || "";
-            const dob = row["NGÀY SINH"] || row["Ngày sinh"] || row["dob"] || "";
+            const normalizedRow: any = {};
+            Object.keys(row).forEach(k => {
+              normalizedRow[k.toString().trim().toLowerCase()] = row[k];
+            });
+
+            const fullName = normalizedRow["họ và tên"] || normalizedRow["họ tên"] || normalizedRow["fullname"] || "";
+            const studentId = normalizedRow["mã sv"] || normalizedRow["mã sinh viên"] || normalizedRow["studentid"] || "";
+            const major = normalizedRow["ngành học"] || normalizedRow["major"] || "";
+            const group = normalizedRow["tổ"] || normalizedRow["group"] || "";
+            const dob = normalizedRow["ngày sinh"] || normalizedRow["dob"] || "";
 
             if (!fullName || !studentId) {
               errorCount++;
               continue; 
             }
 
-            if (members.some(m => m.studentId === String(studentId))) {
+            if (members.some(m => String(m.studentId) === String(studentId).trim())) {
               errorCount++;
               continue; 
             }
 
             await addDoc(collection(db, "members"), {
-              fullName: String(fullName),
-              studentId: String(studentId),
-              major: String(major),
-              group: String(group),
-              dob: String(dob),
+              fullName: String(fullName).trim(),
+              studentId: String(studentId).trim(),
+              major: String(major).trim(),
+              group: String(group).trim(),
+              dob: String(dob).trim(),
               createdAt: serverTimestamp()
             });
             successCount++;
@@ -261,7 +277,7 @@ export default function MemberManagementPage() {
         }
       }
       const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = `DanhSach_ThanhVien_QNU.xlsx`; a.click();
@@ -431,7 +447,7 @@ export default function MemberManagementPage() {
             <div className="grid grid-cols-1 gap-2 mb-8">
               {Object.entries(exportOptions).map(([key, value]) => (
                 <label key={key} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl cursor-pointer hover:bg-blue-50 transition-all">
-                  <span className="font-bold text-[10px] uppercase tracking-widest text-slate-600">{key}</span>
+                  <span className="font-bold text-[10px] uppercase tracking-widest text-slate-600">{EXPORT_LABELS[key] || key}</span>
                   <input type="checkbox" checked={value} onChange={(e) => setExportOptions({...exportOptions, [key]: e.target.checked})} className="w-5 h-5 accent-[#0055A5]"/>
                 </label>
               ))}

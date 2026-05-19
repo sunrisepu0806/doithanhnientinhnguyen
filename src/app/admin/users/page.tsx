@@ -56,9 +56,8 @@ export default function UserManagementPage() {
     } catch (error) { alert("Lỗi hệ thống."); }
   };
 
-  // FIX LỖI: Chia nhỏ batch 500 documents để không bị Firebase chặn
   const batchDelete = async (col: string, msg: string) => {
-    if (!confirm(msg) || !confirm("⚠️ XÁC NHẬN LẦN CUỐI! Dữ liệu sẽ mất vĩnh viễn!")) return;
+    if (!confirm(msg) || !confirm("⚠️ XÁC NHẬN LẦN CUỐI! Dữ liệu sẽ mất vĩnh viễn và KHÔNG THỂ KHÔI PHỤC!")) return;
     setProcessing(true);
     try {
       const q = query(collection(db, col));
@@ -76,7 +75,6 @@ export default function UserManagementPage() {
       for (let i = 0; i < snap.docs.length; i++) {
         batch.delete(snap.docs[i].ref);
         count++;
-        // Nếu đủ 500 thì commit và tạo batch mới
         if (count === 500) {
           await batch.commit();
           batch = writeBatch(db);
@@ -84,12 +82,11 @@ export default function UserManagementPage() {
         }
       }
       
-      // Xóa nốt phần dư còn lại
       if (count > 0) {
         await batch.commit();
       }
 
-      alert("Dọn dẹp thành công!");
+      alert("Xử lý thành công!");
       setIsToolsModalOpen(false);
     } catch (e) { 
       console.error(e);
@@ -102,7 +99,6 @@ export default function UserManagementPage() {
   return (
     <div className="min-h-screen bg-[#F9FBFF] font-sans text-slate-800 pb-20 selection:bg-blue-100">
       
-      {/* HEADER GỌN HƠN */}
       <header className="relative bg-[#0055A5] pt-16 pb-40 px-6 lg:px-12 overflow-hidden rounded-b-[3rem] lg:rounded-b-[5rem]">
         <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-blue-400/20 rounded-full blur-[100px]"></div>
         <div className="max-w-7xl mx-auto relative z-10 flex flex-col md:flex-row justify-between items-center gap-6 text-white">
@@ -115,8 +111,8 @@ export default function UserManagementPage() {
               <p className="text-blue-100 font-bold text-[10px] tracking-[0.3em] uppercase opacity-70">Hệ thống QNU Volunteer</p>
             </div>
           </div>
-          <button onClick={() => setIsToolsModalOpen(true)} className="bg-white/10 backdrop-blur-md border border-white/20 text-white font-black py-3 px-6 rounded-2xl flex items-center gap-2 hover:bg-red-500 transition-all text-xs uppercase tracking-widest">
-            <Wrench size={16} /> Công cụ
+          <button onClick={() => setIsToolsModalOpen(true)} className="bg-white/10 backdrop-blur-md border border-white/20 text-white font-black py-3 px-6 rounded-2xl flex items-center gap-2 hover:bg-red-500 transition-all text-xs uppercase tracking-widest shadow-xl">
+            <Wrench size={16} /> Công cụ hệ thống
           </button>
         </div>
       </header>
@@ -124,7 +120,6 @@ export default function UserManagementPage() {
       <main className="max-w-7xl mx-auto px-6 -mt-24 relative z-20">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
-          {/* CỘT TRÁI: FORM (STICKY) */}
           <aside className="w-full lg:w-[380px] lg:sticky lg:top-8 shrink-0">
             <div className="bg-white p-8 rounded-[3rem] shadow-2xl shadow-blue-900/5 border border-white">
               <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
@@ -153,9 +148,7 @@ export default function UserManagementPage() {
             </div>
           </aside>
 
-          {/* CỘT PHẢI: DANH SÁCH (THU GỌN) */}
           <section className="flex-1 w-full space-y-4">
-            {/* THANH TAB NHỎ GỌN */}
             <div className="bg-white/80 backdrop-blur-xl p-1.5 rounded-[1.5rem] border border-slate-100 shadow-lg flex items-center gap-1">
                {[
                  { id: "all", label: "Tất cả", icon: LayoutGrid },
@@ -171,7 +164,6 @@ export default function UserManagementPage() {
                ))}
             </div>
 
-            {/* DANH SÁCH TÀI KHOẢN */}
             <div className="grid grid-cols-1 gap-2">
               {loading ? (
                 <div className="py-20 text-center"><Loader2 className="animate-spin mx-auto text-blue-500" /></div>
@@ -207,32 +199,54 @@ export default function UserManagementPage() {
         </div>
       </main>
 
-      {/* FOOTER */}
       <div className="mt-20 opacity-20 text-center pointer-events-none">
         <span className="text-[9px] font-black uppercase tracking-[1em] text-slate-400 flex items-center justify-center gap-2">
            obi.phu08 <Heart size={10} className="fill-red-500 text-red-500"/> QNU
         </span>
       </div>
 
-      {/* MODAL CÔNG CỤ */}
       {isToolsModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-6">
-          <div className="bg-white w-full max-w-md p-8 rounded-[3rem] shadow-2xl border-4 border-white animate-in zoom-in duration-200">
+          <div className="bg-white w-full max-w-md p-8 rounded-[3rem] shadow-2xl border-4 border-red-50 animate-in zoom-in duration-200 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-red-500"></div>
+            
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-black flex items-center gap-2 uppercase tracking-tight"><Database size={20}/> Quản trị</h2>
-              <button onClick={() => setIsToolsModalOpen(false)}><X size={20} className="text-slate-400"/></button>
+              <h2 className="text-xl font-black flex items-center gap-2 uppercase tracking-tight text-slate-800"><AlertTriangle size={24} className="text-red-500"/> Dữ liệu cấp cao</h2>
+              <button onClick={() => setIsToolsModalOpen(false)}><X size={24} className="text-slate-400 hover:text-slate-600"/></button>
             </div>
-            <div className="space-y-3">
-              <button onClick={() => batchDelete('attendance', 'Xóa lịch sử quét?')} disabled={processing} className="w-full py-4 rounded-2xl bg-orange-50 text-orange-600 font-black text-[10px] uppercase tracking-widest border border-orange-100 hover:bg-orange-600 hover:text-white transition-all shadow-sm">
-                {processing ? "ĐANG DỌN..." : "Dọn dẹp quét mã"}
+            
+            <div className="space-y-4">
+              <button 
+                onClick={() => batchDelete('attendance', 'Bạn muốn RESET TOÀN BỘ SỐ BUỔI VÀ ĐIỂM THÀNH TÍCH về 0?\n(Hành động này sẽ xóa toàn bộ lịch sử quét mã)')} 
+                disabled={processing} 
+                className="w-full py-5 rounded-2xl bg-orange-50 text-orange-600 font-black text-[11px] uppercase tracking-widest border border-orange-100 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center gap-2"
+              >
+                <RefreshCcw size={18} className={processing ? "animate-spin" : ""} />
+                {processing ? "ĐANG RESET..." : "Reset Buổi & Thành Tích"}
               </button>
-              <button onClick={() => batchDelete('activities', 'Xóa toàn bộ buổi trực?')} disabled={processing} className="w-full py-4 rounded-2xl bg-indigo-50 text-indigo-600 font-black text-[10px] uppercase tracking-widest border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
-                {processing ? "ĐANG XÓA..." : "Xóa sạch buổi trực"}
+              
+              <button 
+                onClick={() => batchDelete('activities', 'Bạn có chắc chắn muốn XÓA TOÀN BỘ HOẠT ĐỘNG / SỰ KIỆN trên hệ thống?')} 
+                disabled={processing} 
+                className="w-full py-5 rounded-2xl bg-indigo-50 text-indigo-600 font-black text-[11px] uppercase tracking-widest border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center gap-2"
+              >
+                <Activity size={18} />
+                {processing ? "ĐANG XÓA..." : "Xóa Tất Cả Hoạt Động"}
               </button>
-              <button onClick={() => batchDelete('members', 'Xóa toàn bộ Đội?')} disabled={processing} className="w-full py-4 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl">
-                {processing ? "ĐANG RESET..." : "Reset danh sách Đội"}
+              
+              <button 
+                onClick={() => batchDelete('members', 'CẢNH BÁO: XÓA SẠCH TOÀN BỘ DANH SÁCH THÀNH VIÊN TRONG ĐỘI?')} 
+                disabled={processing} 
+                className="w-full py-5 rounded-2xl bg-red-50 text-red-600 font-black text-[11px] uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
+              >
+                <Users size={18} />
+                {processing ? "ĐANG XÓA..." : "Xóa Tất Cả Thành Viên"}
               </button>
             </div>
+            
+            <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6">
+              Vui lòng cân nhắc kỹ trước khi xóa
+            </p>
           </div>
         </div>
       )}
