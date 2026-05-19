@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // XÓA DÒNG 'eslint' CŨ ĐI, ĐỂ THẾ NÀY LÀ ĐỦ:
+  // Xóa sạch phần eslint cũ đi, không để gì ở đây cả
 };
 
 export default nextConfig;
