@@ -97,7 +97,6 @@ export default function MemberManagementPage() {
 
             return {
               ...m,
-              // Fix: Bổ sung quét thêm các key lưu trữ cũ/lỗi trong Firebase để đảm bảo không bị sót dữ liệu ngành
               major: m.major || m.Major || m.nganhHoc || m["ngành học"] || m["Ngành Học"] || m["nganh hoc"] || m.nganh || m.class || m.lop || "",
               totalSessions: myAtt.length,
               totalPoints: totalPoints
@@ -197,7 +196,7 @@ export default function MemberManagementPage() {
 
             const fullName = normalizedRow["họ và tên"] || normalizedRow["họ tên"] || normalizedRow["fullname"] || normalizedRow["tên"] || "";
             const studentId = normalizedRow["mã sv"] || normalizedRow["mã sinh viên"] || normalizedRow["studentid"] || normalizedRow["mssv"] || "";
-            // Bổ sung thêm các trường hợp tên cột Ngành Học để bắt chính xác hơn khi import
+            
             const majorKey = Object.keys(normalizedRow).find(k => k.includes("ngành") || k.includes("nganh") || k.includes("chuyên môn") || k.includes("chuyên ngành") || k.includes("lớp") || k.includes("major"));
             const major = majorKey ? normalizedRow[majorKey] : "";
             const group = normalizedRow["tổ"] || normalizedRow["group"] || "";
@@ -262,7 +261,6 @@ export default function MemberManagementPage() {
         if (exportOptions.fullName) rowData.fullName = m.fullName || "";
         if (exportOptions.studentId) rowData.studentId = m.studentId || "";
         if (exportOptions.dob) rowData.dob = m.dob || "";
-        // Fix: Nếu data trống thì trả về "Chưa cập nhật" thay vì chuỗi rỗng để ExcelJS ghi vào file thay vì ô trống
         if (exportOptions.major) rowData.major = m.major || "Chưa cập nhật"; 
         if (exportOptions.group) rowData.group = m.group || "";
         if (exportOptions.totalSessions) rowData.totalSessions = m.totalSessions || 0;
@@ -273,7 +271,7 @@ export default function MemberManagementPage() {
         row.alignment = { vertical: 'middle', horizontal: 'center' };
 
         if (exportOptions.qrCode) {
-          const qrUrl = await QRCode.toDataURL(m.id, { margin: 1 });
+          const qrUrl = await QRCode.toDataURL(m.studentId, { margin: 1 });
           const imageId = workbook.addImage({ base64: qrUrl, extension: 'png' });
           const colIdx = cols.findIndex(c => c.key === 'qrCode');
           worksheet.addImage(imageId, {
@@ -386,9 +384,9 @@ export default function MemberManagementPage() {
         ) : filteredMembers.map(mem => (
           <div key={mem.id} className="group bg-white p-5 pr-8 rounded-[2.5rem] border border-slate-100 hover:border-blue-400 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all flex items-center justify-between">
             <div className="flex items-center gap-8 flex-1 min-w-0">
-              <div className="flex-shrink-0 flex flex-col items-center gap-1 group/qr cursor-pointer" onClick={() => downloadQR(mem.id, mem.fullName)}>
+              <div className="flex-shrink-0 flex flex-col items-center gap-1 group/qr cursor-pointer" onClick={() => downloadQR(mem.studentId, mem.fullName)}>
                 <div className="p-1.5 bg-white rounded-2xl border border-slate-100 shadow-sm group-hover/qr:scale-110 transition-transform">
-                  <QRCodeSVG value={mem.id} size={60} />
+                  <QRCodeSVG value={mem.studentId} size={60} />
                 </div>
                 <span className="text-[7px] font-black text-slate-300">TẢI MÃ</span>
               </div>
