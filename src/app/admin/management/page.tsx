@@ -33,8 +33,8 @@ const EXPORT_LABELS: Record<string, string> = {
   fullName: "Họ và Tên",
   studentId: "Mã Sinh Viên",
   dob: "Ngày Sinh",
-  group: "Tổ",
   major: "Ngành Học",
+  group: "Tổ",
   totalSessions: "Số Buổi",
   totalPoints: "Tổng Điểm",
   qrCode: "Mã QR"
@@ -60,8 +60,8 @@ export default function MemberManagementPage() {
     fullName: true,
     studentId: true,
     dob: true,
-    group: true,
     major: true,
+    group: true,
     totalSessions: true,
     totalPoints: true,
     qrCode: true,
@@ -97,6 +97,8 @@ export default function MemberManagementPage() {
 
             return {
               ...m,
+              // Fix: Bổ sung quét thêm các key lưu trữ cũ/lỗi trong Firebase để đảm bảo không bị sót dữ liệu ngành
+              major: m.major || m.Major || m.nganhHoc || m["ngành học"] || m["Ngành Học"] || m["nganh hoc"] || m.nganh || m.class || m.lop || "",
               totalSessions: myAtt.length,
               totalPoints: totalPoints
             };
@@ -189,14 +191,17 @@ export default function MemberManagementPage() {
           for (const row of jsonData) {
             const normalizedRow: any = {};
             Object.keys(row).forEach(k => {
-              normalizedRow[k.toString().trim().toLowerCase()] = row[k];
+              const cleanKey = k.toString().trim().toLowerCase().replace(/\s+/g, ' ');
+              normalizedRow[cleanKey] = row[k];
             });
 
-            const fullName = normalizedRow["họ và tên"] || normalizedRow["họ tên"] || normalizedRow["fullname"] || "";
-            const studentId = normalizedRow["mã sv"] || normalizedRow["mã sinh viên"] || normalizedRow["studentid"] || "";
-            const major = normalizedRow["ngành học"] || normalizedRow["major"] || "";
+            const fullName = normalizedRow["họ và tên"] || normalizedRow["họ tên"] || normalizedRow["fullname"] || normalizedRow["tên"] || "";
+            const studentId = normalizedRow["mã sv"] || normalizedRow["mã sinh viên"] || normalizedRow["studentid"] || normalizedRow["mssv"] || "";
+            // Bổ sung thêm các trường hợp tên cột Ngành Học để bắt chính xác hơn khi import
+            const majorKey = Object.keys(normalizedRow).find(k => k.includes("ngành") || k.includes("nganh") || k.includes("chuyên môn") || k.includes("chuyên ngành") || k.includes("lớp") || k.includes("major"));
+            const major = majorKey ? normalizedRow[majorKey] : "";
             const group = normalizedRow["tổ"] || normalizedRow["group"] || "";
-            const dob = normalizedRow["ngày sinh"] || normalizedRow["dob"] || "";
+            const dob = normalizedRow["ngày sinh"] || normalizedRow["ngay sinh"] || normalizedRow["dob"] || "";
 
             if (!fullName || !studentId) {
               errorCount++;
@@ -219,7 +224,7 @@ export default function MemberManagementPage() {
             successCount++;
           }
 
-          alert(`Nhập thành công: ${successCount} dữ liệu.\nLỗi/Trùng lặp/Bỏ qua: ${errorCount} dòng.`);
+          alert(`Nhập thành công: ${successCount} dữ liệu.\nLỗi/Trùng lặp/Bỏ qua: ${errorCount} dòng.\n(Lưu ý: Nếu dữ liệu cũ bị mất ngành, bạn cần xóa người đó và nhập lại file).`);
         } catch (err) {
           console.error(err);
           alert("Lỗi cấu trúc file Excel. Vui lòng tải file đúng định dạng để thử lại.");
@@ -254,13 +259,14 @@ export default function MemberManagementPage() {
 
       for (const m of filteredMembers) {
         const rowData: any = {};
-        if (exportOptions.fullName) rowData.fullName = m.fullName;
-        if (exportOptions.studentId) rowData.studentId = m.studentId;
-        if (exportOptions.dob) rowData.dob = m.dob;
-        if (exportOptions.major) rowData.major = m.major;
-        if (exportOptions.group) rowData.group = m.group;
-        if (exportOptions.totalSessions) rowData.totalSessions = m.totalSessions;
-        if (exportOptions.totalPoints) rowData.totalPoints = m.totalPoints;
+        if (exportOptions.fullName) rowData.fullName = m.fullName || "";
+        if (exportOptions.studentId) rowData.studentId = m.studentId || "";
+        if (exportOptions.dob) rowData.dob = m.dob || "";
+        // Fix: Nếu data trống thì trả về "Chưa cập nhật" thay vì chuỗi rỗng để ExcelJS ghi vào file thay vì ô trống
+        if (exportOptions.major) rowData.major = m.major || "Chưa cập nhật"; 
+        if (exportOptions.group) rowData.group = m.group || "";
+        if (exportOptions.totalSessions) rowData.totalSessions = m.totalSessions || 0;
+        if (exportOptions.totalPoints) rowData.totalPoints = m.totalPoints || 0;
 
         const row = worksheet.addRow(rowData);
         row.height = exportOptions.qrCode ? 80 : 25;
@@ -390,7 +396,7 @@ export default function MemberManagementPage() {
                 <h3 className="font-black text-xl text-slate-800 group-hover:text-[#0055A5] transition-colors uppercase truncate mb-1">{mem.fullName}</h3>
                 <div className="flex items-center gap-4">
                   <span className="text-[10px] font-mono font-black text-blue-600/60 bg-blue-50 px-3 py-1 rounded-lg tracking-widest">{mem.studentId}</span>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><MapPin size={12}/> {mem.major}</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><MapPin size={12}/> {mem.major || "Chưa cập nhật"}</span>
                 </div>
               </div>
               <div className="hidden lg:grid grid-cols-3 w-[450px] flex-shrink-0 gap-6 px-10 border-l border-slate-100 ml-4 text-center">
