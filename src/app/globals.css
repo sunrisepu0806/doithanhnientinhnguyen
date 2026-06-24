@@ -1,0 +1,26 @@
+@import "tailwindcss"; /* Dòng này PHẢI ở trên cùng */
+
+@theme {
+  /* Thiết lập các biến "Soft UI" của Phú */
+  --radius-soft: 2rem;
+  --radius-super: 3rem;
+  --shadow-soft-xl: 0 20px 25px -5px rgba(226, 232, 240, 0.5), 
+                    0 8px 10px -6px rgba(226, 232, 240, 0.5);
+  
+  --color-indigo-soft: #6366f1;
+}
+
+@layer base {
+  body {
+    /* Đảm bảo các class này nằm sau @import */
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+}
+
+@layer components {
+  /* Class "xịn" cho các thẻ trong Danh sách hoạt động */
+  .activity-card {
+    @apply bg-white p-6 rounded-soft shadow-soft-xl border border-slate-100/50 
+           flex justify-between items-center transition-all duration-300;
+  }
+}
